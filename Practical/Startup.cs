@@ -11,11 +11,16 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-
+using Practical.Models;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 namespace Practical
 {
     public class Startup
+
     {
+        readonly string MyAllowOrigins = "_myAllowOrigins";
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -26,6 +31,16 @@ namespace Practical
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+
+            var connectionString = Configuration.GetConnectionString("T2008M_Database");
+            services.AddDbContextPool<practicalContext>(options => options.UseSqlServer(connectionString));
+
+            // add CORS
+            services.AddCors(options => {
+                options.AddPolicy(name: MyAllowOrigins,
+                    builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()
+                    );
+            });
 
             services.AddControllers();
             services.AddSwaggerGen(c =>
@@ -47,6 +62,8 @@ namespace Practical
             app.UseHttpsRedirection();
 
             app.UseRouting();
+
+            app.UseCors(MyAllowOrigins);
 
             app.UseAuthorization();
 
